@@ -30,8 +30,8 @@ func GetTime(seconds float64) Time {
 	return time
 }
 
-func PrintTime (time Time) {
-	fmt.Printf("%02.0f:%02.0f:%02.0f", time.hh, time.mm, time.ss)
+func PrintTime (time Time) string {
+	return fmt.Sprintf("%02.0f:%02.0f:%02.0f", time.hh, time.mm, time.ss)
 }
 
 func main() {
@@ -50,8 +50,14 @@ func main() {
 	str := strings.Replace(string(out), "\n", "", -1)
 	passed := GetTime(perc)
 	common := GetTime(duration)
-	fmt.Printf("%s: ", str)
-	PrintTime(passed)
-	fmt.Printf("/")
-	PrintTime(common)
+	// fmt.Printf("%s: ", str)
+	// PrintTime(passed)
+	// fmt.Printf("/")
+	// PrintTime(common)
+	
+	printed_filename := fmt.Sprintf("%s: ", str)
+	printed_time := PrintTime(passed) + "/" + PrintTime(common)
+		
+	cmd = exec.Command("dunstify", printed_filename + printed_time, "-r", "3040", "-u", "urgency")
+	cmd.Run()
 }
