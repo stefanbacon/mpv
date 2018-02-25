@@ -23,8 +23,6 @@ func GetTime(seconds float64) Time {
 			minutes := time.mm
 			time.mm = math.Mod(time.mm, 60)
 			time.hh = (minutes - time.mm) / 60
-		//	time.hh = math.Mod(time.mm, 60) minutes
-//			time.mm = time.mm - time.hh * 60
 		}
 	}
 	return time
@@ -50,14 +48,10 @@ func main() {
 	str := strings.Replace(string(out), "\n", "", -1)
 	passed := GetTime(perc)
 	common := GetTime(duration)
-	// fmt.Printf("%s: ", str)
-	// PrintTime(passed)
-	// fmt.Printf("/")
-	// PrintTime(common)
-	
+
 	printed_filename := fmt.Sprintf("%s: ", str)
 	printed_time := PrintTime(passed) + "/" + PrintTime(common)
-		
+
 	cmd = exec.Command("dunstify", printed_filename + printed_time, "-r", "3040", "-u", "urgency")
 	cmd.Run()
 }
