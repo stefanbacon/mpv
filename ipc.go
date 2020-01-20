@@ -50,15 +50,24 @@ type IPCClient struct {
 }
 
 // NewIPCClient creates a new IPCClient connected to the given socket.
-func NewIPCClient(socket string) *IPCClient {
+func NewIPCClient(socket string) (*IPCClient, error) {
+	conn, err := net.Dial("unix", socket)
+
+	if err != nil {
+		return nil, err
+	}
+
 	c := &IPCClient{
 		socket:  socket,
 		timeout: 2 * time.Second,
 		comm:    make(chan *request),
 		reqMap:  make(map[int]*request),
 	}
-	c.run()
-	return c
+
+	go c.readLoop(conn)
+	go c.writeLoop(conn)
+
+	return c, nil
 }
 
 // dispatch dispatches responses to the corresponding request
@@ -77,17 +86,7 @@ func (c *IPCClient) dispatch(resp *Response) {
 	}
 }
 
-func (c *IPCClient) run() {
-	conn, err := net.Dial("unix", c.socket)
-	if err != nil {
-		panic(err)
-	}
-	go c.readloop(conn)
-	go c.writeloop(conn)
-	// TODO: Close connection
-}
-
-func (c *IPCClient) writeloop(conn io.Writer) {
+func (c *IPCClient) writeLoop(conn io.Writer) {
 	for {
 		req, ok := <-c.comm
 		if !ok {
@@ -111,7 +110,7 @@ func (c *IPCClient) writeloop(conn io.Writer) {
 	}
 }
 
-func (c *IPCClient) readloop(conn io.Reader) {
+func (c *IPCClient) readLoop(conn io.Reader) {
 	rd := bufio.NewReader(conn)
 	for {
 		data, err := rd.ReadBytes('\n')
@@ -131,8 +130,8 @@ func (c *IPCClient) readloop(conn io.Reader) {
 
 // Timeout errors while communicating via IPC
 var (
-	ErrTimeoutSend = errors.New("Timeout while sending command")
-	ErrTimeoutRecv = errors.New("Timeout while receiving response")
+	ErrTimeoutSend = errors.New("timeout while sending command")
+	ErrTimeoutRecv = errors.New("timeout while receiving response")
 )
 
 // Exec executes a command via ipc and returns the response.
