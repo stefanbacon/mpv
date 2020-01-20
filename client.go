@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/rand"
 	"net"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -48,10 +49,12 @@ func NewClient(socket string) (*Client, error) {
 	}
 
 	client := &Client{
-		socket:   socket,
-		timeout:  2 * time.Second,
-		requests: make(chan *request),
-		reqMap:   make(map[int]*request),
+		socket:          socket,
+		timeout:         2 * time.Second,
+		requests:        make(chan *request),
+		reqMap:          make(map[int]*request),
+		observeStringCB: make(map[string]func(string)),
+		observeFloatCB:  make(map[string]func(float64)),
 	}
 
 	go client.receiveLoop(conn)
@@ -101,14 +104,19 @@ func (c *Client) dispatch(resp *Response) {
 			return
 		}
 	} else if resp.Event == "property-change" {
-		//resp.
-
-		// TODO: Implement Event support
+		if cb, ok := c.observeStringCB[resp.Name]; ok {
+			cb(resp.Data.(string))
+		} else if cb, ok := c.observeFloatCB[resp.Name]; ok {
+			cb(resp.Data.(float64))
+		} else {
+		fmt.Println("no callback :(")
+			
+		}
+		
+		fmt.Println("got response!!!")
+	} else {
+		fmt.Println(resp.Event)
 	}
-}
-
-func (c *Client) ObserveProperty() {
-	//c.Exec()
 }
 
 var (
@@ -119,7 +127,7 @@ var (
 func (c *Client) Exec(command ...interface{}) (*Response, error) {
 	req := &request{
 		Command:   command,
-		RequestID: rand.Intn(10000),
+		RequestID: rand.Intn(10000)+1,
 		Response:  make(chan *Response, 1),
 	}
 
