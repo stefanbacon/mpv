@@ -7,7 +7,6 @@ import (
 	"io"
 	"math/rand"
 	"net"
-	"fmt"
 	"sync"
 	"time"
 )
@@ -108,14 +107,7 @@ func (c *Client) dispatch(resp *Response) {
 			cb(resp.Data.(string))
 		} else if cb, ok := c.observeFloatCB[resp.Name]; ok {
 			cb(resp.Data.(float64))
-		} else {
-		fmt.Println("no callback :(")
-			
-		}
-		
-		fmt.Println("got response!!!")
-	} else {
-		fmt.Println(resp.Event)
+		} 
 	}
 }
 
