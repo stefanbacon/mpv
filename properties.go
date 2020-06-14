@@ -15,6 +15,11 @@ func (c *Client) ObserveString(property string, cb func(value string)) {
 	_, _ = c.Exec("observe_property", 0, property)
 }
 
+func (c *Client) ObserveBool(property string, cb func(value bool)) {
+	c.observeBoolCB[property] = cb
+	_, _ = c.Exec("observe_property", 0, property)
+}
+
 // GetProperty reads a property by name and returns the data as a string.
 func (c *Client) GetProperty(name string) (string, error) {
 	res, err := c.Exec("get_property", name)

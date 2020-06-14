@@ -37,6 +37,7 @@ type Client struct {
 	reqMap          map[int]*request // Maps RequestIDs to Requests for response association
 	observeFloatCB  map[string]func(value float64)
 	observeStringCB map[string]func(value string)
+	observeBoolCB	map[string]func(value bool)
 }
 
 // NewClient creates a new highlevel client based on a lowlevel client.
@@ -54,6 +55,7 @@ func NewClient(socket string) (*Client, error) {
 		reqMap:          make(map[int]*request),
 		observeStringCB: make(map[string]func(string)),
 		observeFloatCB:  make(map[string]func(float64)),
+		observeBoolCB:	 make(map[string]func(value bool)),
 	}
 
 	go client.receiveLoop(conn)
@@ -107,7 +109,9 @@ func (c *Client) dispatch(resp *Response) {
 			cb(resp.Data.(string))
 		} else if cb, ok := c.observeFloatCB[resp.Name]; ok {
 			cb(resp.Data.(float64))
-		} 
+		} else if cb, ok := c.observeBoolCB[resp.Name]; ok {
+			cb(resp.Data.(bool))
+		}
 	}
 }
 
